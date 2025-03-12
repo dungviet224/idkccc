@@ -3,29 +3,49 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Auto Play Music</title>
+    <title>Spam Music</title>
+    <style>
+        body {
+            text-align: center;
+            background-color: black;
+            color: white;
+            font-family: Arial, sans-serif;
+        }
+        #fake-stop {
+            margin-top: 20%;
+            padding: 20px 40px;
+            font-size: 30px;
+            font-weight: bold;
+            color: white;
+            background-color: red;
+            border: 5px solid white;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        #fake-stop:hover {
+            background-color: darkred;
+            transform: scale(1.1);
+        }
+    </style>
 </head>
 <body>
-    <audio id="background-music" loop>
-        <source src="music.mp3" type="audio/mpeg">
-        Trình duyệt của bạn không hỗ trợ audio.
-    </audio>
+    <h1>Nhạc sẽ phát liên tục mỗi giây!</h1>
+    <button id="fake-stop">STOP</button>
 
     <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            var audio = document.getElementById("background-music");
+        function playMusic() {
+            var audio = new Audio("music.mp3");
+            audio.play();
+        }
 
-            function playAudio() {
-                audio.play().catch(error => {
-                    console.log("Tự động phát bị chặn, chờ người dùng tương tác...");
-                });
+        // Phát nhạc mỗi giây, chồng lên nhau
+        setInterval(playMusic, 1000);
+
+        // Nếu nhấn vào nút "STOP" giả → phát nhạc nhiều lần cùng lúc
+        document.getElementById("fake-stop").addEventListener("click", function() {
+            for (let i = 0; i < 10; i++) { // Chạy thêm 10 lần mỗi lần bấm
+                playMusic();
             }
-
-            // Cố gắng phát nhạc ngay khi trang tải xong
-            playAudio();
-
-            // Nếu bị chặn, phát nhạc khi người dùng bấm vào bất kỳ đâu trên trang
-            document.addEventListener("click", playAudio, { once: true });
         });
     </script>
 </body>
