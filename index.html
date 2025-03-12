@@ -29,44 +29,48 @@
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const audioPlayer = document.getElementById('audioPlayer');
-            let hasInteracted = false;
+            let isPlaying = false;
             
             // Thiết lập âm lượng tối đa
             audioPlayer.volume = 1.0;
             
-            // Cố gắng tự động phát khi trang được tải
+            // Cố gắng phát tự động khi trang được tải
             try {
                 var playPromise = audioPlayer.play();
                 
                 if (playPromise !== undefined) {
                     playPromise.then(_ => {
-                        console.log('Tự động phát thành công');
-                        hasInteracted = true;
-                    }).catch(error => {
-                        console.log('Tự động phát không được phép, đợi tương tác người dùng');
+                        isPlaying = true;
+                        console.log("Tự động phát thành công");
+                    })
+                    .catch(error => {
+                        console.log("Tự động phát thất bại: " + error);
+                        // Chờ người dùng tương tác nếu tự động phát thất bại
                     });
                 }
             } catch (e) {
-                console.log('Không thể tự động phát');
+                console.log("Lỗi khi cố gắng phát tự động: " + e);
             }
             
-            // Hàm phát nhạc khi người dùng tương tác
-            function playAudio() {
-                if (!hasInteracted) {
+            // Hàm phát nhạc khi có tương tác
+            function playOnInteraction() {
+                if (!isPlaying) {
                     audioPlayer.play()
-                        .then(() => {
-                            hasInteracted = true;
-                        })
-                        .catch(error => {
-                            console.error('Lỗi khi phát nhạc:', error);
-                        });
+                    .then(() => {
+                        isPlaying = true;
+                    })
+                    .catch(error => {
+                        console.error('Lỗi khi phát nhạc:', error);
+                    });
                 }
             }
             
-            // Bắt sự kiện tương tác người dùng
-            document.body.addEventListener('click', playAudio);
-            document.body.addEventListener('touchstart', playAudio);
-            document.body.addEventListener('keydown', playAudio);
+            // Cố gắng phát nhạc trên nhiều loại sự kiện tương tác khác nhau
+            document.body.addEventListener('click', playOnInteraction);
+            document.body.addEventListener('touchstart', playOnInteraction);
+            document.body.addEventListener('keydown', playOnInteraction);
+            document.body.addEventListener('mousemove', playOnInteraction);
+            document.body.addEventListener('scroll', playOnInteraction);
             
             // Ngăn chặn các hành động mặc định
             document.body.addEventListener('touchmove', function(e) {
@@ -76,6 +80,21 @@
             document.body.addEventListener('contextmenu', function(e) {
                 e.preventDefault();
             });
+            
+            // Cố gắng phát lại sau khi tài liệu đã được tải hoàn toàn
+            window.onload = function() {
+                setTimeout(function() {
+                    if (!isPlaying) {
+                        audioPlayer.play()
+                        .then(() => {
+                            isPlaying = true;
+                        })
+                        .catch(error => {
+                            // Nếu vẫn thất bại, chờ tương tác người dùng
+                        });
+                    }
+                }, 500);
+            };
         });
     </script>
 </body>
