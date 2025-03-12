@@ -3,98 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Màn hình đen</title>
-    <style>
-        body {
-            margin: 0;
-            padding: 0;
-            background-color: #000;
-            width: 100%;
-            height: 100vh;
-            overflow: hidden;
-            cursor: default;
-            user-select: none;
-            -webkit-user-select: none;
-            -moz-user-select: none;
-            -ms-user-select: none;
-        }
-    </style>
+    <title>Auto Play Music</title>
 </head>
 <body>
-    <audio id="audioPlayer" loop autoplay>
-        <!-- Thay đổi đường dẫn file mp3 tại đây -->
-        <source src="music.mp3" type="audio/mp3">
+    <audio id="background-music" loop>
+        <source src="music.mp3" type="audio/mpeg">
+        Trình duyệt của bạn không hỗ trợ audio.
     </audio>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const audioPlayer = document.getElementById('audioPlayer');
-            let isPlaying = false;
-            
-            // Thiết lập âm lượng tối đa
-            audioPlayer.volume = 1.0;
-            
-            // Cố gắng phát tự động khi trang được tải
-            try {
-                var playPromise = audioPlayer.play();
-                
-                if (playPromise !== undefined) {
-                    playPromise.then(_ => {
-                        isPlaying = true;
-                        console.log("Tự động phát thành công");
-                    })
-                    .catch(error => {
-                        console.log("Tự động phát thất bại: " + error);
-                        // Chờ người dùng tương tác nếu tự động phát thất bại
-                    });
-                }
-            } catch (e) {
-                console.log("Lỗi khi cố gắng phát tự động: " + e);
+        document.addEventListener("DOMContentLoaded", function() {
+            var audio = document.getElementById("background-music");
+
+            function playAudio() {
+                audio.play().catch(error => {
+                    console.log("Tự động phát bị chặn, chờ người dùng tương tác...");
+                });
             }
-            
-            // Hàm phát nhạc khi có tương tác
-            function playOnInteraction() {
-                if (!isPlaying) {
-                    audioPlayer.play()
-                    .then(() => {
-                        isPlaying = true;
-                    })
-                    .catch(error => {
-                        console.error('Lỗi khi phát nhạc:', error);
-                    });
-                }
-            }
-            
-            // Cố gắng phát nhạc trên nhiều loại sự kiện tương tác khác nhau
-            document.body.addEventListener('click', playOnInteraction);
-            document.body.addEventListener('touchstart', playOnInteraction);
-            document.body.addEventListener('keydown', playOnInteraction);
-            document.body.addEventListener('mousemove', playOnInteraction);
-            document.body.addEventListener('scroll', playOnInteraction);
-            
-            // Ngăn chặn các hành động mặc định
-            document.body.addEventListener('touchmove', function(e) {
-                e.preventDefault();
-            }, { passive: false });
-            
-            document.body.addEventListener('contextmenu', function(e) {
-                e.preventDefault();
-            });
-            
-            // Cố gắng phát lại sau khi tài liệu đã được tải hoàn toàn
-            window.onload = function() {
-                setTimeout(function() {
-                    if (!isPlaying) {
-                        audioPlayer.play()
-                        .then(() => {
-                            isPlaying = true;
-                        })
-                        .catch(error => {
-                            // Nếu vẫn thất bại, chờ tương tác người dùng
-                        });
-                    }
-                }, 500);
-            };
+
+            // Cố gắng phát nhạc ngay khi trang tải xong
+            playAudio();
+
+            // Nếu bị chặn, phát nhạc khi người dùng bấm vào bất kỳ đâu trên trang
+            document.addEventListener("click", playAudio, { once: true });
         });
     </script>
 </body>
