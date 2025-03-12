@@ -3,49 +3,83 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Spam Music</title>
+    <title>Không thể dừng video</title>
     <style>
-        body {
-            text-align: center;
-            background-color: black;
-            color: white;
-            font-family: Arial, sans-serif;
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
-        #fake-stop {
-            margin-top: 20%;
-            padding: 20px 40px;
-            font-size: 30px;
+        body {
+            background: black;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+        #play-button {
+            padding: 20px 50px;
+            font-size: 40px;
             font-weight: bold;
+            background: red;
             color: white;
-            background-color: red;
             border: 5px solid white;
             cursor: pointer;
             transition: 0.2s;
         }
-        #fake-stop:hover {
-            background-color: darkred;
+        #play-button:hover {
+            background: darkred;
             transform: scale(1.1);
+        }
+        #video-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            display: none;
+        }
+        video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
         }
     </style>
 </head>
 <body>
-    <h1>Nhạc sẽ phát liên tục mỗi giây!</h1>
-    <button id="fake-stop">STOP</button>
+    <button id="play-button">PLAY</button>
+
+    <div id="video-container">
+        <video id="myVideo" autoplay loop>
+            <source src="video.mp4" type="video/mp4">
+            Trình duyệt của bạn không hỗ trợ video.
+        </video>
+    </div>
 
     <script>
-        function playMusic() {
-            var audio = new Audio("music.mp3");
-            audio.play();
-        }
+        document.getElementById("play-button").addEventListener("click", function() {
+            var videoContainer = document.getElementById("video-container");
+            var video = document.getElementById("myVideo");
 
-        // Phát nhạc mỗi giây, chồng lên nhau
-        setInterval(playMusic, 1000);
+            // Ẩn nút PLAY và hiển thị video toàn màn hình
+            this.style.display = "none";
+            videoContainer.style.display = "block";
+            video.play();
 
-        // Nếu nhấn vào nút "STOP" giả → phát nhạc nhiều lần cùng lúc
-        document.getElementById("fake-stop").addEventListener("click", function() {
-            for (let i = 0; i < 10; i++) { // Chạy thêm 10 lần mỗi lần bấm
-                playMusic();
-            }
+            // Chặn mọi thao tác trên video
+            video.controls = false;
+            video.setAttribute("playsinline", ""); 
+            video.setAttribute("muted", ""); // Nếu muốn video không có âm thanh mặc định
+
+            // Nếu người dùng cố gắng dừng, tua hoặc tắt video → tự động phát lại ngay lập tức
+            video.addEventListener("pause", function() {
+                video.play();
+            });
+
+            video.addEventListener("ended", function() {
+                video.play();
+            });
         });
     </script>
 </body>
