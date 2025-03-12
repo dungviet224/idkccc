@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trang Web Phát Nhạc Tự Động</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            text-align: center;
+        }
+        .container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            max-width: 500px;
+        }
+        h1 {
+            color: #333;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 10px 2px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        #status {
+            margin-top: 20px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Trang Web Phát Nhạc Tự Động</h1>
+        <div>
+            <button id="playButton">Bắt đầu phát nhạc</button>
+            <button id="stopButton">Dừng nhạc</button>
+        </div>
+        <div id="status">Nhấn nút để bắt đầu phát nhạc</div>
+        
+        <audio id="audioPlayer" loop>
+            <!-- Thay đổi đường dẫn file mp3 tại đây -->
+            <source src="music.mp3" type="audio/mp3">
+            Trình duyệt của bạn không hỗ trợ phát audio.
+        </audio>
+    </div>
+
+    <script>
+        // Lưu ý: Đa số trình duyệt hiện nay yêu cầu tương tác của người dùng trước khi cho phép phát âm thanh tự động
+        document.addEventListener('DOMContentLoaded', function() {
+            const audioPlayer = document.getElementById('audioPlayer');
+            const playButton = document.getElementById('playButton');
+            const stopButton = document.getElementById('stopButton');
+            const statusText = document.getElementById('status');
+            
+            // Cố gắng phát nhạc tự động khi trang được tải
+            try {
+                // Thiết lập âm lượng tối đa
+                audioPlayer.volume = 1.0;
+                
+                // Thêm sự kiện khi người dùng tương tác với trang
+                document.body.addEventListener('click', function() {
+                    playAudio();
+                }, { once: true });
+            } catch (error) {
+                statusText.textContent = 'Không thể phát nhạc tự động: ' + error.message;
+            }
+            
+            // Hàm phát nhạc
+            function playAudio() {
+                audioPlayer.play()
+                    .then(() => {
+                        statusText.textContent = 'Đang phát nhạc...';
+                    })
+                    .catch(error => {
+                        statusText.textContent = 'Lỗi khi phát nhạc: ' + error.message;
+                    });
+            }
+            
+            // Nút bắt đầu phát nhạc
+            playButton.addEventListener('click', function() {
+                // Thiết lập âm lượng tối đa
+                audioPlayer.volume = 1.0;
+                playAudio();
+            });
+            
+            // Nút dừng phát nhạc
+            stopButton.addEventListener('click', function() {
+                audioPlayer.pause();
+                statusText.textContent = 'Đã dừng phát nhạc.';
+            });
+        });
+    </script>
+</body>
+</html>
