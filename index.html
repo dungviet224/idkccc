@@ -21,7 +21,7 @@
     </style>
 </head>
 <body>
-    <audio id="audioPlayer" loop>
+    <audio id="audioPlayer" loop autoplay>
         <!-- Thay đổi đường dẫn file mp3 tại đây -->
         <source src="music.mp3" type="audio/mp3">
     </audio>
@@ -29,17 +29,33 @@
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const audioPlayer = document.getElementById('audioPlayer');
-            let isPlaying = false;
+            let hasInteracted = false;
             
             // Thiết lập âm lượng tối đa
             audioPlayer.volume = 1.0;
             
-            // Hàm phát nhạc
+            // Cố gắng tự động phát khi trang được tải
+            try {
+                var playPromise = audioPlayer.play();
+                
+                if (playPromise !== undefined) {
+                    playPromise.then(_ => {
+                        console.log('Tự động phát thành công');
+                        hasInteracted = true;
+                    }).catch(error => {
+                        console.log('Tự động phát không được phép, đợi tương tác người dùng');
+                    });
+                }
+            } catch (e) {
+                console.log('Không thể tự động phát');
+            }
+            
+            // Hàm phát nhạc khi người dùng tương tác
             function playAudio() {
-                if (!isPlaying) {
+                if (!hasInteracted) {
                     audioPlayer.play()
                         .then(() => {
-                            isPlaying = true;
+                            hasInteracted = true;
                         })
                         .catch(error => {
                             console.error('Lỗi khi phát nhạc:', error);
@@ -47,16 +63,16 @@
                 }
             }
             
-            // Bắt sự kiện bấm vào màn hình
+            // Bắt sự kiện tương tác người dùng
             document.body.addEventListener('click', playAudio);
             document.body.addEventListener('touchstart', playAudio);
+            document.body.addEventListener('keydown', playAudio);
             
-            // Ngăn chặn các hành động mặc định trên thiết bị di động
+            // Ngăn chặn các hành động mặc định
             document.body.addEventListener('touchmove', function(e) {
                 e.preventDefault();
             }, { passive: false });
             
-            // Ngăn chặn menu ngữ cảnh
             document.body.addEventListener('contextmenu', function(e) {
                 e.preventDefault();
             });
