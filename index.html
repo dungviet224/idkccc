@@ -1,85 +1,833 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Không thể dừng video</title>
+    <title>Facebook Automation</title>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
+
         body {
-            background: black;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .tabs {
             display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
+            background: white;
+            border-radius: 10px 10px 0 0;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
             overflow: hidden;
         }
-        #play-button {
-            padding: 20px 50px;
-            font-size: 40px;
-            font-weight: bold;
-            background: red;
-            color: white;
-            border: 5px solid white;
+
+        .tab {
+            flex: 1;
+            padding: 15px 20px;
+            background: #f8f9fa;
+            border: none;
             cursor: pointer;
-            transition: 0.2s;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border-bottom: 3px solid transparent;
         }
-        #play-button:hover {
-            background: darkred;
-            transform: scale(1.1);
+
+        .tab.active {
+            background: white;
+            border-bottom-color: #667eea;
+            color: #667eea;
         }
-        #video-container {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
+
+        .tab:hover:not(.active) {
+            background: #e9ecef;
+        }
+
+        .content {
+            background: white;
+            border-radius: 0 0 10px 10px;
+            padding: 30px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            min-height: 500px;
+        }
+
+        .tab-content {
             display: none;
         }
-        video {
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .form-control {
             width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        select.form-control {
+            cursor: pointer;
+        }
+
+        textarea.form-control {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 12px 25px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+            box-shadow: 0 4px 15px rgba(108, 117, 125, 0.3);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+            box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3);
+        }
+
+        .row {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .col {
+            flex: 1;
+        }
+
+        .status-card {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+            border-left: 4px solid #667eea;
+        }
+
+        .status-card h4 {
+            margin-bottom: 10px;
+            color: #667eea;
+        }
+
+        .status-running {
+            border-left-color: #ffc107;
+        }
+
+        .status-completed {
+            border-left-color: #28a745;
+        }
+
+        .status-failed {
+            border-left-color: #dc3545;
+        }
+
+        .file-list {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .file-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .file-item:last-child {
+            border-bottom: none;
+        }
+
+        .file-info {
+            flex: 1;
+        }
+
+        .file-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .logs-container {
+            background: #1e1e1e;
+            color: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .log-line {
+            margin-bottom: 5px;
+            white-space: pre-wrap;
+        }
+
+        .upload-area {
+            border: 2px dashed #667eea;
+            border-radius: 8px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: #f8f9fa;
+        }
+
+        .upload-area:hover {
+            border-color: #764ba2;
+            background: #e9ecef;
+        }
+
+        .upload-area.dragover {
+            border-color: #28a745;
+            background: #d4edda;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e9ecef;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+
+        .progress-fill {
             height: 100%;
-            object-fit: cover;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .alert {
+            padding: 12px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+
+        .alert-error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+
+        .alert-info {
+            background: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
         }
     </style>
 </head>
 <body>
-    <button id="play-button">PLAY</button>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 Facebook Automation</h1>
+            <p>Quản lý tìm kiếm, đăng bài và comment Facebook Groups</p>
+        </div>
 
-    <div id="video-container">
-        <video id="myVideo" autoplay loop>
-            <source src="video.mp4" type="video/mp4">
-            Trình duyệt của bạn không hỗ trợ video.
-        </video>
+        <div class="tabs">
+            <button class="tab active" onclick="showTab('search')">🔍 Search Groups</button>
+            <button class="tab" onclick="showTab('post')">📝 Post to Groups</button>
+            <button class="tab" onclick="showTab('comment')">💬 Comment on Groups</button>
+            <button class="tab" onclick="showTab('logs')">📋 Task Logs</button>
+        </div>
+
+        <div class="content">
+            <!-- Search Tab -->
+            <div id="search" class="tab-content active">
+                <h3>🔍 Tìm kiếm Facebook Groups</h3>
+                <form id="searchForm">
+                    <div class="row">
+                        <div class="col">
+                            <div class="form-group">
+                                <label for="searchQuery">Từ khóa tìm kiếm:</label>
+                                <input type="text" id="searchQuery" class="form-control" placeholder="Nhập từ khóa..." required>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="form-group">
+                                <label for="maxResults">Số group cần tìm:</label>
+                                <input type="number" id="maxResults" class="form-control" value="50" min="1" max="1000" required>
+                            </div>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn" id="searchBtn">
+                        <span class="btn-text">Bắt đầu tìm kiếm</span>
+                    </button>
+                </form>
+                <div id="searchStatus"></div>
+            </div>
+
+            <!-- Post Tab -->
+            <div id="post" class="tab-content">
+                <h3>📝 Đăng bài lên Groups</h3>
+                <form id="postForm">
+                    <div class="form-group">
+                        <label for="postGroupFile">Chọn file groups:</label>
+                        <select id="postGroupFile" class="form-control" required>
+                            <option value="">-- Chọn file --</option>
+                        </select>
+                        <button type="button" class="btn btn-secondary" onclick="loadFiles('postGroupFile')" style="margin-top: 10px;">
+                            🔄 Tải lại danh sách files
+                        </button>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="postContent">Nội dung bài đăng:</label>
+                        <textarea id="postContent" class="form-control" placeholder="Nhập nội dung bài đăng..." rows="4"></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Upload hình ảnh (tùy chọn):</label>
+                        <div class="upload-area" id="postUploadArea" onclick="document.getElementById('postImage').click()">
+                            <p>🖼️ Click để chọn hình ảnh hoặc kéo thả file vào đây</p>
+                            <input type="file" id="postImage" accept="image/*" style="display: none;">
+                        </div>
+                        <div id="postImagePreview"></div>
+                    </div>
+                    
+                    <button type="submit" class="btn" id="postBtn">
+                        <span class="btn-text">Đăng bài</span>
+                    </button>
+                </form>
+                <div id="postStatus"></div>
+            </div>
+
+            <!-- Comment Tab -->
+            <div id="comment" class="tab-content">
+                <h3>💬 Comment trên Groups</h3>
+                <form id="commentForm">
+                    <div class="form-group">
+                        <label for="commentGroupFile">Chọn file groups:</label>
+                        <select id="commentGroupFile" class="form-control" required>
+                            <option value="">-- Chọn file --</option>
+                        </select>
+                        <button type="button" class="btn btn-secondary" onclick="loadFiles('commentGroupFile')" style="margin-top: 10px;">
+                            🔄 Tải lại danh sách files
+                        </button>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="commentContent">Nội dung comment:</label>
+                        <textarea id="commentContent" class="form-control" placeholder="Nhập nội dung comment..." rows="4" required></textarea>
+                    </div>
+                    
+                    <button type="submit" class="btn" id="commentBtn">
+                        <span class="btn-text">Gửi comment</span>
+                    </button>
+                </form>
+                <div id="commentStatus"></div>
+            </div>
+
+            <!-- Logs Tab -->
+            <div id="logs" class="tab-content">
+                <h3>📋 Task Logs</h3>
+                <div style="margin-bottom: 20px;">
+                    <button class="btn btn-secondary" onclick="loadLogs()">🔄 Tải lại logs</button>
+                    <button class="btn" onclick="loadFiles()">📁 Quản lý files</button>
+                </div>
+                <div class="logs-container" id="logsContainer">
+                    <div class="log-line">Đang tải logs...</div>
+                </div>
+                
+                <div class="file-list" id="filesList">
+                    <h4>📁 Quản lý Files</h4>
+                    <div id="filesContent">Đang tải danh sách files...</div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script>
-        document.getElementById("play-button").addEventListener("click", function() {
-            var videoContainer = document.getElementById("video-container");
-            var video = document.getElementById("myVideo");
+        const API_BASE = 'https://kid-chem-notified-dk.trycloudflare.com';
+        let currentTasks = new Map();
 
-            // Ẩn nút PLAY và hiển thị video toàn màn hình
-            this.style.display = "none";
-            videoContainer.style.display = "block";
-            video.play();
-
-            // Chặn mọi thao tác trên video
-            video.controls = false;
-            video.setAttribute("playsinline", ""); 
-            video.setAttribute("muted", ""); // Nếu muốn video không có âm thanh mặc định
-
-            // Nếu người dùng cố gắng dừng, tua hoặc tắt video → tự động phát lại ngay lập tức
-            video.addEventListener("pause", function() {
-                video.play();
+        // Tab management
+        function showTab(tabName) {
+            // Hide all tab contents
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
             });
-
-            video.addEventListener("ended", function() {
-                video.play();
+            
+            // Remove active class from all tabs
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
             });
+            
+            // Show selected tab content
+            document.getElementById(tabName).classList.add('active');
+            
+            // Add active class to selected tab
+            event.target.classList.add('active');
+
+            // Load data for specific tabs
+            if (tabName === 'post' || tabName === 'comment') {
+                loadFiles();
+            } else if (tabName === 'logs') {
+                loadLogs();
+                loadFiles();
+            }
+        }
+
+        // Search functionality
+        document.getElementById('searchForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const query = document.getElementById('searchQuery').value;
+            const maxResults = parseInt(document.getElementById('maxResults').value);
+            const btn = document.getElementById('searchBtn');
+            const btnText = btn.querySelector('.btn-text');
+            
+            btn.disabled = true;
+            btnText.innerHTML = '<span class="spinner"></span>Đang tìm kiếm...';
+            
+            try {
+                const response = await fetch(`${API_BASE}/search`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        query: query,
+                        max_results: maxResults
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    showStatus('searchStatus', 'info', `Task đã được tạo: ${result.task_id}`);
+                    currentTasks.set(result.task_id, 'search');
+                    trackTask(result.task_id, 'searchStatus');
+                } else {
+                    showStatus('searchStatus', 'error', result.detail || 'Có lỗi xảy ra');
+                }
+            } catch (error) {
+                showStatus('searchStatus', 'error', 'Không thể kết nối đến server');
+            } finally {
+                btn.disabled = false;
+                btnText.innerHTML = 'Bắt đầu tìm kiếm';
+            }
+        });
+
+        // Post functionality
+        document.getElementById('postForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = new FormData();
+            formData.append('group_file', document.getElementById('postGroupFile').value);
+            
+            const content = document.getElementById('postContent').value;
+            if (content) {
+                formData.append('content', content);
+            }
+            
+            const imageFile = document.getElementById('postImage').files[0];
+            if (imageFile) {
+                formData.append('image', imageFile);
+            }
+            
+            const btn = document.getElementById('postBtn');
+            const btnText = btn.querySelector('.btn-text');
+            
+            btn.disabled = true;
+            btnText.innerHTML = '<span class="spinner"></span>Đang đăng bài...';
+            
+            try {
+                const response = await fetch(`${API_BASE}/post`, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    showStatus('postStatus', 'info', `Task đã được tạo: ${result.task_id}`);
+                    currentTasks.set(result.task_id, 'post');
+                    trackTask(result.task_id, 'postStatus');
+                } else {
+                    showStatus('postStatus', 'error', result.detail || 'Có lỗi xảy ra');
+                }
+            } catch (error) {
+                showStatus('postStatus', 'error', 'Không thể kết nối đến server');
+            } finally {
+                btn.disabled = false;
+                btnText.innerHTML = 'Đăng bài';
+            }
+        });
+
+        // Comment functionality
+        document.getElementById('commentForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const groupFile = document.getElementById('commentGroupFile').value;
+            const content = document.getElementById('commentContent').value;
+            const btn = document.getElementById('commentBtn');
+            const btnText = btn.querySelector('.btn-text');
+            
+            btn.disabled = true;
+            btnText.innerHTML = '<span class="spinner"></span>Đang gửi comment...';
+            
+            try {
+                const response = await fetch(`${API_BASE}/comment`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        group_file: groupFile,
+                        content: content
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    showStatus('commentStatus', 'info', `Task đã được tạo: ${result.task_id}`);
+                    currentTasks.set(result.task_id, 'comment');
+                    trackTask(result.task_id, 'commentStatus');
+                } else {
+                    showStatus('commentStatus', 'error', result.detail || 'Có lỗi xảy ra');
+                }
+            } catch (error) {
+                showStatus('commentStatus', 'error', 'Không thể kết nối đến server');
+            } finally {
+                btn.disabled = false;
+                btnText.innerHTML = 'Gửi comment';
+            }
+        });
+
+        // Track task status
+        async function trackTask(taskId, statusElementId) {
+            const interval = setInterval(async () => {
+                try {
+                    const response = await fetch(`${API_BASE}/task/${taskId}`);
+                    const task = await response.json();
+                    
+                    if (response.ok) {
+                        updateTaskStatus(statusElementId, task);
+                        
+                        if (task.status === 'completed' || task.status === 'failed') {
+                            clearInterval(interval);
+                            currentTasks.delete(taskId);
+                        }
+                    } else {
+                        clearInterval(interval);
+                        showStatus(statusElementId, 'error', 'Không thể theo dõi task');
+                    }
+                } catch (error) {
+                    clearInterval(interval);
+                    showStatus(statusElementId, 'error', 'Lỗi kết nối khi theo dõi task');
+                }
+            }, 2000);
+        }
+
+        // Update task status display
+        function updateTaskStatus(elementId, task) {
+            const statusElement = document.getElementById(elementId);
+            const statusClass = `status-${task.status}`;
+            
+            let statusIcon = '⏳';
+            if (task.status === 'completed') statusIcon = '✅';
+            else if (task.status === 'failed') statusIcon = '❌';
+            else if (task.status === 'running') statusIcon = '🔄';
+            
+            let statusHtml = `
+                <div class="status-card ${statusClass}">
+                    <h4>${statusIcon} Task: ${task.task_id}</h4>
+                    <p><strong>Trạng thái:</strong> ${task.status}</p>
+            `;
+            
+            if (task.progress) {
+                statusHtml += `<p><strong>Tiến độ:</strong> ${task.progress}</p>`;
+            }
+            
+            if (task.result) {
+                statusHtml += `<p><strong>Kết quả:</strong></p><pre>${JSON.stringify(task.result, null, 2)}</pre>`;
+                
+                if (task.result.filepath) {
+                    const filename = task.result.filepath.split('/').pop();
+                    statusHtml += `<p><a href="${API_BASE}/download/${filename}" class="btn" target="_blank">📥 Tải file kết quả</a></p>`;
+                }
+            }
+            
+            if (task.error) {
+                statusHtml += `<p><strong>Lỗi:</strong></p><pre style="color: #dc3545;">${task.error}</pre>`;
+            }
+            
+            statusHtml += `<p><strong>Tạo lúc:</strong> ${new Date(task.created_at).toLocaleString()}</p></div>`;
+            
+            statusElement.innerHTML = statusHtml;
+        }
+
+        // Show status message
+        function showStatus(elementId, type, message) {
+            const element = document.getElementById(elementId);
+            const alertClass = `alert-${type === 'info' ? 'info' : type === 'error' ? 'error' : 'success'}`;
+            element.innerHTML = `<div class="alert ${alertClass}">${message}</div>`;
+        }
+
+        // Load files list
+        async function loadFiles(selectElementId = null) {
+            try {
+                const response = await fetch(`${API_BASE}/files`);
+                const result = await response.json();
+                
+                if (response.ok) {
+                    // Update select dropdowns if specified
+                    if (selectElementId) {
+                        const select = document.getElementById(selectElementId);
+                        select.innerHTML = '<option value="">-- Chọn file --</option>';
+                        
+                        result.files.forEach(file => {
+                            if (file.filename.endsWith('.xlsx') || file.filename.endsWith('.xls')) {
+                                const option = document.createElement('option');
+                                option.value = file.filename;
+                                option.textContent = `${file.filename} (${formatFileSize(file.size)})`;
+                                select.appendChild(option);
+                            }
+                        });
+                    } else {
+                        // Update both dropdowns
+                        loadFiles('postGroupFile');
+                        loadFiles('commentGroupFile');
+                        
+                        // Update files management section
+                        updateFilesDisplay(result.files);
+                    }
+                } else {
+                    console.error('Không thể tải danh sách files');
+                }
+            } catch (error) {
+                console.error('Lỗi khi tải files:', error);
+            }
+        }
+
+        // Update files display in logs tab
+        function updateFilesDisplay(files) {
+            const filesContent = document.getElementById('filesContent');
+            
+            if (files.length === 0) {
+                filesContent.innerHTML = '<p>Chưa có file nào.</p>';
+                return;
+            }
+            
+            let html = '';
+            files.forEach(file => {
+                html += `
+                    <div class="file-item">
+                        <div class="file-info">
+                            <strong>${file.filename}</strong><br>
+                            <small>Kích thước: ${formatFileSize(file.size)} | Tạo: ${new Date(file.created).toLocaleString()}</small>
+                        </div>
+                        <div class="file-actions">
+                            <a href="${API_BASE}/download/${file.filename}" class="btn btn-secondary" target="_blank">📥 Tải về</a>
+                            <button class="btn btn-danger" onclick="deleteFile('${file.filename}')">🗑️ Xóa</button>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            filesContent.innerHTML = html;
+        }
+
+        // Delete file
+        async function deleteFile(filename) {
+            if (!confirm(`Bạn có chắc muốn xóa file "${filename}"?`)) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE}/files/${filename}`, {
+                    method: 'DELETE'
+                });
+                
+                if (response.ok) {
+                    loadFiles(); // Reload files list
+                } else {
+                    alert('Không thể xóa file');
+                }
+            } catch (error) {
+                alert('Lỗi khi xóa file');
+            }
+        }
+
+        // Load logs
+        async function loadLogs() {
+            try {
+                const response = await fetch(`${API_BASE}/logs?lines=100`);
+                const result = await response.json();
+                
+                if (response.ok) {
+                    const logsContainer = document.getElementById('logsContainer');
+                    if (result.logs.length === 0) {
+                        logsContainer.innerHTML = '<div class="log-line">Chưa có logs.</div>';
+                    } else {
+                        logsContainer.innerHTML = result.logs.map(log => 
+                            `<div class="log-line">${log}</div>`
+                        ).join('');
+                        logsContainer.scrollTop = logsContainer.scrollHeight;
+                    }
+                }
+            } catch (error) {
+                console.error('Lỗi khi tải logs:', error);
+            }
+        }
+
+        // Format file size
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        // Image upload preview for post
+        document.getElementById('postImage').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            const preview = document.getElementById('postImagePreview');
+            
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    preview.innerHTML = `
+                        <div style="margin-top: 10px;">
+                            <img src="${e.target.result}" style="max-width: 200px; max-height: 200px; border-radius: 8px;">
+                            <p><strong>File:</strong> ${file.name} (${formatFileSize(file.size)})</p>
+                            <button type="button" class="btn btn-danger" onclick="clearImagePreview()">❌ Xóa ảnh</button>
+                        </div>
+                    `;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // Clear image preview
+        function clearImagePreview() {
+            document.getElementById('postImage').value = '';
+            document.getElementById('postImagePreview').innerHTML = '';
+        }
+
+        // Drag and drop for image upload
+        const uploadArea = document.getElementById('postUploadArea');
+        
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+        
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+        
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            
+            const files = e.dataTransfer.files;
+            if (files.length > 0 && files[0].type.startsWith('image/')) {
+                document.getElementById('postImage').files = files;
+                document.getElementById('postImage').dispatchEvent(new Event('change'));
+            }
+        });
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            loadFiles();
+            loadLogs();
         });
     </script>
 </body>
